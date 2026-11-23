@@ -1,0 +1,31 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "bundler",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "esnext",
+    "lib": ["es2022", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": [],
+    "paths": {
+      "@nx-angular-monorepo/data-access-cart": ["./libs/data-access-cart/src/index.ts"],
+      "@nx-angular-monorepo/data-access-products": ["./libs/data-access-products/src/index.ts"],
+      "@nx-angular-monorepo/feature-cart": ["./libs/feature-cart/src/index.ts"],
+      "@nx-angular-monorepo/feature-products": ["./libs/feature-products/src/index.ts"],
+      "@nx-angular-monorepo/ui-components": ["./libs/ui-components/src/index.ts"],
+      "@nx-angular-monorepo/util-common": ["./libs/util-common/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
