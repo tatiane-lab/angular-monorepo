@@ -1,0 +1,8 @@
+{
+  "name": "data-access-cart",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/data-access-cart/src",
+  "tags": ["type:data-access", "domain:cart"],
+  "targets": {}
+}
