@@ -1,0 +1,8 @@
+{
+  "name": "util-common",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/util-common/src",
+  "tags": ["type:util", "domain:shared"],
+  "targets": {}
+}
