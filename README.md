@@ -1,57 +1,83 @@
 # Nx Angular Monorepo
 
-> Nx 20 · Angular 22 · Feature/UI/Data-access/Util Architecture · `enforce-module-boundaries` · Build Cache · `nx affected` CI
+> Nx · Angular 22 · NgRx SignalStore · arquitetura em camadas (feature / ui / data-access / util) · fronteiras de módulo com `enforce-module-boundaries`
 
-A production-grade Nx workspace demonstrating layered architecture, strict import boundaries, distributed caching, and per-remote CI deploys.
+Loja de demonstração construída como monorepo Nx para mostrar organização em camadas, tags de domínio e imports restritos entre bibliotecas. A API é simulada em memória, então o projeto roda sozinho, sem backend.
 
-## Workspace Structure
+## Funcionalidades
+
+- Catálogo de produtos com busca, filtro por categoria e ordenação (menor/maior preço, melhor avaliados)
+- Detalhe do produto, com estado de estoque (esgotado / poucas unidades)
+- Carrinho com quantidades, subtotal, persistência em `localStorage` e checkout simulado
+- Estados de carregamento (skeleton), vazio, erro (com "tentar novamente") e 404
+- Tema claro/escuro (respeita `prefers-color-scheme` e lembra a escolha)
+- Layout responsivo e rotas carregadas sob demanda (lazy)
+
+Não há login neste projeto, portanto não existem credenciais de demonstração.
+
+## Estrutura do workspace
 
 ```
-nx-angular-monorepo/
-├── apps/
-│   ├── shell/              # Host application (tag: type:app, domain:shared)
-│   ├── products-remote/    # Products MFE (tag: type:app, domain:products)
-│   └── cart-remote/        # Cart MFE (tag: type:app, domain:cart)
-└── libs/
-    ├── feature-products/   # tags: type:feature, domain:products
-    ├── feature-cart/       # tags: type:feature, domain:cart
-    ├── ui-components/      # tags: type:ui, domain:shared
-    ├── data-access-products/ # tags: type:data-access, domain:products
-    ├── data-access-cart/   # tags: type:data-access, domain:cart
-    └── util-common/        # tags: type:util, domain:shared
+apps/
+  shell/                  # app host (type:app, domain:shell): rotas, tema, mock da API
+libs/
+  feature-products/       # type:feature, domain:products  (lista, detalhe, rotas)
+  feature-cart/           # type:feature, domain:cart      (página do carrinho, rotas)
+  ui-components/          # type:ui, domain:shared         (button, card, badge, spinner, state-message)
+  data-access-products/   # type:data-access, domain:products (service + ProductsStore)
+  data-access-cart/       # type:data-access, domain:cart  (CartStore)
+  util-common/            # type:util, domain:shared       (validators, formatação, datas, CART_PORT)
 ```
 
-## Module Boundary Rules
+## Como rodar
 
-Enforced by `@nx/enforce-module-boundaries` in `.eslintrc.json`:
+```bash
+npm install
+npm start          # http://localhost:4210
+npm run build      # build de produção em dist/apps/shell
+npm test           # testes unitários (Vitest) das libs
+npx nx graph       # grafo de dependências
+```
 
-| Source tag | May depend on |
+## Regras de fronteira entre módulos
+
+Aplicadas por `@nx/enforce-module-boundaries` em `.eslintrc.json`:
+
+| Tag de origem | Pode depender de |
 |---|---|
 | `type:app` | feature, ui, data-access, util |
 | `type:feature` | ui, data-access, util |
 | `type:ui` | ui, util |
 | `type:data-access` | data-access, util |
-| `type:util` | util only |
+| `type:util` | util |
 
-Domain tags additionally restrict cross-domain imports (products libs cannot import from cart libs).
+Tags de domínio restringem imports entre domínios: `products` não importa `cart` e vice-versa. O app (`domain:shell`) é o único que enxerga os dois.
 
-## CI Pipeline
+## Decisões de arquitetura
 
-GitHub Actions runs `nx affected` to build/lint/test only what changed:
+- **Desacoplamento entre domínios com uma porta (`CART_PORT`)**: a lib de produtos precisa adicionar itens ao carrinho sem importar a lib do carrinho. O contrato fica em `util-common` (`CartPort`) e o app o liga ao `CartStore` em `app.config.ts`.
+- **NgRx SignalStore** para estado (`ProductsStore`, `CartStore`), com `computed` para filtros, ordenação e totais.
+- **Angular moderno**: componentes standalone, `input()`/`output()`, `OnPush`, control flow (`@if`/`@for`), `withComponentInputBinding` para o parâmetro `:id` e tipagem estrita.
+- **API simulada** por um `HttpInterceptorFn` (`mock-api.interceptor.ts`): os serviços usam `HttpClient` normalmente; trocar por um backend real não exige mudar as libs.
+- **Rotas lazy** por feature via `loadChildren`/`loadComponent`.
+- **Design tokens** em CSS custom properties, com tema escuro por `data-theme`.
+- O build usa o Angular CLI (`@angular/build`) orquestrado pelo Nx (cache de `build` e `test`). Module Federation não é usado: o app host carrega as features como rotas lazy no mesmo bundle.
+
+## Stack
+
+| Pacote | Versão |
+|---|---|
+| `nx` | ^22 |
+| `@angular/*` | ~22.3 |
+| `@ngrx/signals` | ^22 |
+| `typescript` | ~6.0 |
+| `vitest` | ^4 |
+
+## CI
+
+O GitHub Actions pode usar `nx affected` para executar apenas o que mudou:
 
 ```bash
-npx nx affected -t build --parallel=3
-npx nx affected -t test --configuration=ci
-npx nx affected -t lint
+npx nx affected -t build
+npx nx affected -t test
 ```
-
-A matrix job deploys each remote independently on `main`.
-
-## Tech Stack
-
-| Package | Version |
-|---|---|
-| `nx` | ^20.0.0 |
-| `@angular/core` | ^22.3.0 |
-| `@ngrx/signals` | ^22.0.0 |
-| `@angular-architects/native-federation` | ^19.0.0 |
