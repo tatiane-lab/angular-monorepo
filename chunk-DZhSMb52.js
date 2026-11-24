@@ -1,0 +1,1 @@
+import{t as K}from"./chunk-Be62ftCR.js";import"./chunk-6TnRpYPP.js";import"./main-B7TYK4MW.js";import"./chunk-BjaMIKav.js";export{K as ProductDetailComponent};
